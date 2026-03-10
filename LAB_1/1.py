@@ -50,7 +50,7 @@ print(f"\nЛИНЕЙНАЯ ИНТЕРПОЛЯЦИЯ: интервал [{x_i:.2f}
 # 2.
 # МН Лагранжа
 L1 = y_i * (x_star - x_i1) / (x_i - x_i1) + y_i1 * (x_star - x_i) / (x_i1 - x_i)
-print(f"\nЭТАП 2. L1({x_star}) = {L1:.10f}")
+print(f"\nЭТАП 2. L1({x_star}) = {L1:.16f}")
 
 # 3
 omega2 = (x_star - x_i) * (x_star - x_i1)
@@ -65,7 +65,7 @@ max_R1 = max(R1_lev, R1_prav)
 
 # Точное значение функции и фактическая погрешность
 y_tochn = f(x_star)
-R1_fakt = L1 - y_tochn
+R1_fakt = y_tochn - L1
 
 print("\nЭТАП 3. ОЦЕНКА ПОГРЕШНОСТИ ЛИНЕЙНОЙ ИНТЕРПОЛЯЦИИ")
 print(f"   ω₂(x*) = {omega2:.8f}")
@@ -116,7 +116,7 @@ ch2 = y_i0 * (x_star - x_im1) * (x_star - x_ip1) / ((x_i0 - x_im1) * (x_i0 - x_i
 ch3 = y_ip1 * (x_star - x_im1) * (x_star - x_i0) / ((x_ip1 - x_im1) * (x_ip1 - x_i0))
 L2 = ch1 + ch2 + ch3
 
-print(f"\nЭТАП 5. L2({x_star}) = {L2:.10f}")
+print(f"\nЭТАП 5. L2({x_star}) = {L2:.16f}")
 
 # 6
 omega3 = (x_star - x_im1) * (x_star - x_i0) * (x_star - x_ip1)
@@ -128,7 +128,7 @@ R2_prav = f3_prav * omega3 / 6.0
 min_R2 = min(R2_lev, R2_prav)
 max_R2 = max(R2_lev, R2_prav)
 
-R2_fakt = L2 - y_tochn
+R2_fakt = y_tochn - L2
 
 print("\nЭТАП 6. ОЦЕНКА ПОГРЕШНОСТИ КВАДРАТИЧНОЙ ИНТЕРПОЛЯЦИИ")
 print(f"   ω₃(x*) = {omega3:.8f}")
@@ -152,11 +152,11 @@ else:
 print("=" * 70)
 
 
-#  8
+# 8
 print("\nЭТАП 8. ИНТЕРПОЛЯЦИЯ НЬЮТОНА")
 print("Таблица разделённых разностей (узлы x_im1, x_i0, x_ip1):")
 
-# Разделённые разности первого порядка
+# Разделённые разности первого порядка (для квадратичной интерполяции)
 f_im1_i0 = (y_i0 - y_im1) / (x_i0 - x_im1)
 f_i0_ip1 = (y_ip1 - y_i0) / (x_ip1 - x_i0)
 
@@ -167,16 +167,17 @@ print(f"   f[x_im1, x_i0] = {f_im1_i0:.8f}")
 print(f"   f[x_i0, x_ip1] = {f_i0_ip1:.8f}")
 print(f"   f[x_im1, x_i0, x_ip1] = {f_im1_i0_ip1:.8f}")
 
-# Линейная интерполяция Ньютона по узлам x_i0, x_ip1
-N1 = y_i0 + f_i0_ip1 * (x_star - x_i0)
-print(f"\n   Линейный многочлен Ньютона (узлы x_i, x_i+1): N1 = {N1:.10f}")
-print(f"   Сравнение с L1: L1 = {L1:.10f}, разность = {abs(N1-L1):.2e}")
 
-# Квадратичная интерполяция Ньютона по трём узлам
+f_i_ip1 = (y_i1 - y_i) / (x_i1 - x_i)
+N1 = y_i + f_i_ip1 * (x_star - x_i)
+print(f"\n   Линейный многочлен Ньютона (узлы x_{i_lin}, x_{i_lin+1}): N1 = {N1:.16f}")
+print(f"   Сравнение с L1: L1 = {L1:.16f}, разность = {abs(N1 - L1):.16e}")
+
+# Квадратичная интерполяция Ньютона по трём узлам (без изменений)
 N2 = (
     y_im1
     + f_im1_i0 * (x_star - x_im1)
     + f_im1_i0_ip1 * (x_star - x_im1) * (x_star - x_i0)
 )
-print(f"\n   Квадратичный многочлен Ньютона: N2 = {N2:.10f}")
-print(f"   Сравнение с L2: L2 = {L2:.10f}, разность = {abs(N2-L2):.2e}")
+print(f"\n   Квадратичный многочлен Ньютона: N2 = {N2:.16f}")
+print(f"   Сравнение с L2: L2 = {L2:.16f}, разность = {abs(N2 - L2):.16e}")
