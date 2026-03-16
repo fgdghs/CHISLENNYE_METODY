@@ -1,9 +1,10 @@
 import math
 import sys
 
-# Перенаправление вывода в файл
-f_output = open('LAB_2/interpolation_results.txt', 'w', encoding='utf-8')
+
+f_output = open("LAB_2/interpolation_results.txt", "w", encoding="utf-8")
 sys.stdout = f_output
+
 
 def f(x):
     return x**2 + math.log(x) - 4
@@ -73,16 +74,16 @@ print("\n" + "=" * 160)
 print(f"{'ЭТАП 2. ВЫЧИСЛЕНИЕ ИНТЕРПОЛЯЦИОННЫХ МНОГОЧЛЕНОВ L10(z)':^160}")
 print("-" * 160)
 
-# 1. x** (1-я формула Ньютона так как точка расположена в начале, а формула использует узлы от x0 до x10 (разности, идущие «вниз»))
-t2 = (x_points_to_eval[0]["val"] - x_uzly[0]) / h
+# 1. x** (1-я формула Ньютона так как точка расположена в начале, а формула использует узлы от x0 до x10 (разности, идущие «вперёд»))
+t2 = (x_points_to_eval[0]["val"] - x_uzly[0]) / h  # из x = x0 + t*h
 L_n2 = dy[0][0]
 p = 1.0
 for k in range(1, 11):
     p *= (t2 - k + 1) / k
-    L_n2 += p * dy[0][k]
+    L_n2 += p * dy[0][k]  # вычисления рекурсивный с t умножаем на разности
 
-# 2. x*** (2-я формула Ньютона так как точка расположена в конце, а формула использует узлы от x10 до x0 (разности, идущие «вверх»))
-t3 = (x_points_to_eval[1]["val"] - x_uzly[10]) / h
+# 2. x*** (2-я формула Ньютона так как точка расположена в конце, а формула использует узлы от x10 до x0 (разности, идущие «назад»))
+t3 = (x_points_to_eval[1]["val"] - x_uzly[10]) / h  # из x = x0 + t*h
 L_n3 = dy[10][0]
 p = 1.0
 for k in range(1, 11):
@@ -100,7 +101,7 @@ for k in range(1, 11):
         p *= (t4 + (k // 2)) / k
     else:
         p *= (t4 - (k // 2)) / k
-    L_n4 += p * dy[idx0 - (k // 2)][k]
+    L_n4 += p * dy[idx0 - (k // 2)][k]  # // деление без остатка
 
 x_points_to_eval[0]["L"] = L_n2
 x_points_to_eval[1]["L"] = L_n3
@@ -140,15 +141,15 @@ for pt in x_points_to_eval:
     for xi in x_uzly:
         omega *= z - xi
 
-    val1 = -(f11_a * omega) / fact11
-    val2 = -(f11_b * omega) / fact11
+    val1 = (f11_a * omega) / fact11
+    val2 = (f11_b * omega) / fact11
 
     # Min and Max Rn
     min_Rn = min(val1, val2)
     max_Rn = max(val1, val2)
 
     # Разность Ln(z) - f(z)
-    Rn_z = Ln_z - fz
+    Rn_z = fz - Ln_z
 
     print(f"\nАНАЛИЗ ДЛЯ ТОЧКИ {pt['name']} ({z}):")
     print(
@@ -169,7 +170,6 @@ for pt in x_points_to_eval:
 
 print("-" * 160)
 
-# Закрытие файла и возврат вывода в консоль
 f_output.close()
 sys.stdout = sys.__stdout__
 
