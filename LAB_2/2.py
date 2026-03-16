@@ -1,5 +1,9 @@
 import math
+import sys
 
+# Перенаправление вывода в файл
+f_output = open('LAB_2/interpolation_results.txt', 'w', encoding='utf-8')
+sys.stdout = f_output
 
 def f(x):
     return x**2 + math.log(x) - 4
@@ -103,7 +107,7 @@ x_points_to_eval[1]["L"] = L_n3
 x_points_to_eval[2]["L"] = L_n4
 
 for pt in x_points_to_eval:
-    print(f"L10({pt['name']} = {pt['val']}) = {pt['L']:.16f}  ({pt["LN"]})")
+    print(f"L10({pt['name']} = {pt['val']}) = {pt['L']:.16f}  ({pt['LN']})")
 
 # ЭТАП 3. ОЦЕНКА ПОГРЕШНОСТИ
 print("\n" + "=" * 160)
@@ -148,7 +152,7 @@ for pt in x_points_to_eval:
 
     print(f"\nАНАЛИЗ ДЛЯ ТОЧКИ {pt['name']} ({z}):")
     print(
-        f"   L10 = {pt['L']:.16f}  ({pt["LN"]}), F({pt['val']}) = {f(pt['val']):.16f}, Разница = {abs(pt['L'] - f(pt['val'])):.16e})"
+        f"   L10 = {pt['L']:.16f}  ({pt['LN']}), F({pt['val']}) = {f(pt['val']):.16f}, Разница = {abs(pt['L'] - f(pt['val'])):.16e})"
     )
     print(f"   omega_11(z) = {omega:.16e}")
     print(
@@ -164,3 +168,9 @@ for pt in x_points_to_eval:
         print(f"   РЕЗУЛЬТАТ: НЕ ВЫПОЛНЯЕТСЯ ")
 
 print("-" * 160)
+
+# Закрытие файла и возврат вывода в консоль
+f_output.close()
+sys.stdout = sys.__stdout__
+
+print("READY" * 100)
