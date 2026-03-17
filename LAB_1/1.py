@@ -1,85 +1,181 @@
 import math
 
 
-# --- ШАГ 1: ОПРЕДЕЛЕНИЕ ФУНКЦИИ И ПРОИЗВОДНЫХ ---
 def f(x):
     return x**2 + math.log(x) - 4
 
 
-# Вторая производная f''(x) для оценки погрешности R1
-def f_vtoraya_proizv(x):
-    return 2 - (1 / x**2)
+def f_vtoraya(x):
+    return 2.0 - 1.0 / (x * x)
 
 
-# Данные твоего варианта (№3)
-nachalo, konec = 1.5, 2.0
-kolichestvo_uzlov = 10
-shag = (konec - nachalo) / kolichestvo_uzlov
+def f_tretya(x):
+    return 2.0 / x**3
 
-# Точка для расчета (x* и x** одинаковы в табл. 1 для 3-го варианта)
-x_celevoy = 1.52
 
-# --- ШАГ 2: ПОСТРОЕНИЕ ТАБЛИЦЫ ЗНАЧЕНИЙ (Пункт 1 задания) ---
-uzly_x = [round(nachalo + i * shag, 2) for i in range(kolichestvo_uzlov + 1)]
-uzly_y = [f(x) for x in uzly_x]
+# Исход данные
+a, b = 1.5, 2.0
+n = 10  # число интервалов
+h = (b - a) / n  # Шаг
+x_star = 1.52
 
-print(f"--- ТАБЛИЦА ЗНАЧЕНИЙ ФУНКЦИИ ---")
-for i, (ux, uy) in enumerate(zip(uzly_x, uzly_y)):
-    print(f"x{i}: {ux:.2f} | f(x{i}): {uy:.6f}")
 
-# --- ШАГ 3: АВТОМАТИЧЕСКИЙ ВЫБОР РАБОЧЕГО ИНТЕРВАЛА ---
-# Вместо того чтобы писать i=0 руками, мы просим программу найти
-# индекс j такой, чтобы наш x_celevoy лежал между узлами x[j] и x[j+1].
-indeks = 0
-for j in range(len(uzly_x) - 1):
-    if uzly_x[j] <= x_celevoy <= uzly_x[j + 1]:
-        indeks = j
+# 1
+print("=" * 70)
+print("ЭТАП 1. ТАБЛИЦА ЗНАЧЕНИЙ ФУНКЦИИ")
+print("-" * 70)
+x_uzly = [round(a + i * h, 2) for i in range(n + 1)]
+y_uzly = [f(x) for x in x_uzly]
+
+print(f"{'i':3} | {'x_i':6} | {'f(x_i)':12}")
+print("-" * 70)
+for i, (xi, yi) in enumerate(zip(x_uzly, y_uzly)):
+    print(f"{i:3d} | {xi:6.2f} | {yi:12.8f}")
+print("=" * 70)
+
+# Определяю индекс i для линейной интерполяции
+i_lin = 0
+for j in range(len(x_uzly) - 1):
+    if x_uzly[j] <= x_star <= x_uzly[j + 1]:
+        i_lin = j
         break
 
-# Теперь присваиваем значения найденных узлов
-xi, xi1 = uzly_x[indeks], uzly_x[indeks + 1]
-yi, yi1 = uzly_y[indeks], uzly_y[indeks + 1]
+x_i = x_uzly[i_lin]
+x_i1 = x_uzly[i_lin + 1]
+y_i = y_uzly[i_lin]
+y_i1 = y_uzly[i_lin + 1]
 
-print(f"\nВыбран рабочий интервал: [{xi}, {xi1}] (индекс i={indeks})")
+print(f"\nЛИНЕЙНАЯ ИНТЕРПОЛЯЦИЯ: интервал [{x_i:.2f}, {x_i1:.2f}], индекс i={i_lin}")
 
-# --- ШАГ 4: РАСЧЕТ ПО ФОРМУЛЕ ЛАГРАНЖА (L1) ---
-# Линейная интерполяция через весовые коэффициенты узлов.
-lagranzh1 = yi * (x_celevoy - xi1) / (xi - xi1) + yi1 * (x_celevoy - xi) / (xi1 - xi)
+# 2.
+# МН Лагранжа
+L1 = y_i * (x_star - x_i1) / (x_i - x_i1) + y_i1 * (x_star - x_i) / (x_i1 - x_i)
+print(f"\nЭТАП 2. L1({x_star}) = {L1:.16f}")
 
-# --- ШАГ 5: РАСЧЕТ ПО ФОРМУЛЕ НЬЮТОНА (N1) ---
-# Линейная интерполяция через разделенные разности.
-razdel_raznost = (yi1 - yi) / (xi1 - xi)
-nyuton1 = yi + razdel_raznost * (x_celevoy - xi)
+# 3
+omega2 = (x_star - x_i) * (x_star - x_i1)
+# Значения второй производной на концах интервала
+f2_lev = f_vtoraya(x_i)
+f2_prav = f_vtoraya(x_i1)
 
-# --- ШАГ 6: ОЦЕНКА ПОГРЕШНОСТИ (Пункт 2 задания) ---
-y_tochnoe = f(x_celevoy)
-pogreshnost_fakt = lagranzh1 - y_tochnoe
+R1_lev = f2_lev * omega2 / 2.0
+R1_prav = f2_prav * omega2 / 2.0
+min_R1 = min(R1_lev, R1_prav)
+max_R1 = max(R1_lev, R1_prav)
 
-# Оцениваем R1 через вторую производную на краях интервала [xi, xi1]
-f2_znacheniya = [f_vtoraya_proizv(xi), f_vtoraya_proizv(xi1)]
-omega2 = (x_celevoy - xi) * (x_celevoy - xi1)
+# Точное значение функции и фактическая погрешность
+y_tochn = f(x_star)
+R1_fakt = y_tochn - L1
 
-# Вычисляем границы теоретического остаточного члена
-r1_granica1 = (f2_znacheniya[0] * omega2) / 2
-r1_granica2 = (f2_znacheniya[1] * omega2) / 2
+print("\nЭТАП 3. ОЦЕНКА ПОГРЕШНОСТИ ЛИНЕЙНОЙ ИНТЕРПОЛЯЦИИ")
+print(f"   ω₂(x*) = {omega2:.8f}")
+print(f"   f'' на концах: {f2_lev:.8f}, {f2_prav:.8f}")
+print(f"   R1 левый = {R1_lev:.8f}, R1 правый = {R1_prav:.8f}")
+print(f"   min R1 = {min_R1:.8f}, max R1 = {max_R1:.8f}")
+print(f"   Фактическая погрешность R1_fakt = L1 - f(x*) = {R1_fakt:.8f}")
+# 4
+print("\nЭТАП 4. ОЦЕНКА R и ответ на вопрос пункта 2")
+if min_R1 < R1_fakt < max_R1:
+    print("   --> Неравенство min R1 < R1_fakt < max R1 ВЫПОЛНЯЕТСЯ")
+else:
+    print("   --> Неравенство min R1 < R1_fakt < max R1 НЕ ВЫПОЛНЯЕТСЯ")
 
-# --- ВЫВОД РЕЗУЛЬТАТОВ ---
-print(f"\n--- РЕЗУЛЬТАТЫ ДЛЯ x = {x_celevoy} ---")
-print(f"Интерполяция Лагранжа L1: {lagranzh1:.8f}")
-print(f"Интерполяция Ньютона N1:   {nyuton1:.8f}")
-print(f"Точное значение f(x):      {y_tochnoe:.8f}")
-print(f"Фактическая погрешность:   {abs(pogreshnost_fakt):.8e}")
+# Вопрос пункта 2
+if abs(L1 - y_tochn) <= 1e-4:
+    print("\nЛинейная интерполяция обеспечивает точность 1e-4.")
+else:
+    print("\nЛинейная интерполяция НЕ обеспечивает точность 1e-4.")
+print("-" * 70)
 
-print(f"\n--- ОЦЕНКА ПОГРЕШНОСТИ ---")
-teor_min, teor_max = min(r1_granica1, r1_granica2), max(r1_granica1, r1_granica2)
-print(f"Теоретический интервал R1: ({teor_min:.8f}, {teor_max:.8f})")
+
+# 5. Квадратичная интерполяция
+i_kv = i_lin + 1  # Новый центр
+
+if i_kv > n - 1:
+    i_kv = n - 1  # Если точка в самом конце, то центр - предпоследний узел
+# Узлы
+x_im1 = x_uzly[i_kv - 1]
+x_i0 = x_uzly[i_kv]
+x_ip1 = x_uzly[i_kv + 1]
+y_im1 = y_uzly[i_kv - 1]
+y_i0 = y_uzly[i_kv]
+y_ip1 = y_uzly[i_kv + 1]
+
 print(
-    f"R1 фактическое ({pogreshnost_fakt:.8f}) попадает в интервал? "
-    f"{'Да' if teor_min < pogreshnost_fakt < teor_max else 'Нет'}"
+    f"\nКВАДРАТИЧНАЯ ИНТЕРПОЛЯЦИЯ: узлы x{i_kv-1}={x_im1:.2f}, x{i_kv}={x_i0:.2f}, x{i_kv+1}={x_ip1:.2f}"
+)
+print(
+    f"Условие x_im1 < x* < x_i0 выполнено? {x_im1 < x_star < x_i0 }".replace(
+        "True", "ДА"
+    ).replace("False", "НЕТ")
 )
 
-# Проверка на соответствие точности 10^-4
-dopustimo = abs(pogreshnost_fakt) <= 1e-4
-print(
-    f"\nДопустима ли линейная интерполяция (ошибка <= 10^-4)? {'Да' if dopustimo else 'Нет'}"
+# Вычисление L2
+ch1 = y_im1 * (x_star - x_i0) * (x_star - x_ip1) / ((x_im1 - x_i0) * (x_im1 - x_ip1))
+ch2 = y_i0 * (x_star - x_im1) * (x_star - x_ip1) / ((x_i0 - x_im1) * (x_i0 - x_ip1))
+ch3 = y_ip1 * (x_star - x_im1) * (x_star - x_i0) / ((x_ip1 - x_im1) * (x_ip1 - x_i0))
+L2 = ch1 + ch2 + ch3
+
+print(f"\nЭТАП 5. L2({x_star}) = {L2:.16f}")
+
+# 6
+omega3 = (x_star - x_im1) * (x_star - x_i0) * (x_star - x_ip1)
+# Значения третьей производной на концах интервала [x_im1, x_ip1]
+f3_lev = f_tretya(x_im1)
+f3_prav = f_tretya(x_ip1)
+R2_lev = f3_lev * omega3 / 6.0
+R2_prav = f3_prav * omega3 / 6.0
+min_R2 = min(R2_lev, R2_prav)
+max_R2 = max(R2_lev, R2_prav)
+
+R2_fakt = y_tochn - L2
+
+print("\nЭТАП 6. ОЦЕНКА ПОГРЕШНОСТИ КВАДРАТИЧНОЙ ИНТЕРПОЛЯЦИИ")
+print(f"   ω₃(x*) = {omega3:.8f}")
+print(f"   f''' на концах: {f3_lev:.8f}, {f3_prav:.8f}")
+print(f"   R2 левый = {R2_lev:.8f}, R2 правый = {R2_prav:.8f}")
+print(f"   min R2 = {min_R2:.8f}, max R2 = {max_R2:.8f}")
+print(f"   Фактическая погрешность R2_fakt = L2 - f(x*) = {R2_fakt:.8f}")
+# 7
+print("\nЭТАП 7.R2 и ответ на вопрос пункта 3")
+if min_R2 < R2_fakt < max_R2:
+    print("    Неравенство min R2 < R2_fakt < max R2 ВЫПОЛНЯЕТСЯ")
+else:
+    print("   Неравенство min R2 < R2_fakt < max R2 НЕ ВЫПОЛНЯЕТСЯ")
+
+
+# Вопрос пункта 3
+if abs(L2 - y_tochn) <= 1e-5:
+    print("Квадратичная интерполяция обеспечивает точность 1e-5.")
+else:
+    print("Квадратичная интерполяция НЕ обеспечивает точность 1e-5.")
+print("=" * 70)
+
+
+# 8
+print("\nЭТАП 8. ИНТЕРПОЛЯЦИЯ НЬЮТОНА")
+print("Таблица разделённых разностей (узлы x_im1, x_i0, x_ip1):")
+
+f_im1_i0 = (y_i0 - y_im1) / (x_i0 - x_im1)
+f_i0_ip1 = (y_ip1 - y_i0) / (x_ip1 - x_i0)
+
+f_im1_i0_ip1 = (f_i0_ip1 - f_im1_i0) / (x_ip1 - x_im1)
+
+print(f"   f[x_im1, x_i0] = {f_im1_i0:.8f}")
+print(f"   f[x_i0, x_ip1] = {f_i0_ip1:.8f}")
+print(f"   f[x_im1, x_i0, x_ip1] = {f_im1_i0_ip1:.8f}")
+
+
+f_i_ip1 = (y_i1 - y_i) / (x_i1 - x_i)
+N1 = y_i + f_i_ip1 * (x_star - x_i)
+print(f"\n   Линейный многочлен Ньютона (узлы x_{i_lin}, x_{i_lin+1}): N1 = {N1:.16f}")
+print(f"   Сравнение с L1: L1 = {L1:.16f}, разность = {abs(N1 - L1):.16e}")
+
+# Квадратичная интерполяция Ньютона по трём узлам (без изменений)
+N2 = (
+    y_im1
+    + f_im1_i0 * (x_star - x_im1)
+    + f_im1_i0_ip1 * (x_star - x_im1) * (x_star - x_i0)
 )
+print(f"\n   Квадратичный многочлен Ньютона: N2 = {N2:.16f}")
+print(f"   Сравнение с L2: L2 = {L2:.16f}, разность = {abs(N2 - L2):.16e}")
