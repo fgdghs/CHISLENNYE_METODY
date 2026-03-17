@@ -14,18 +14,14 @@ def f_deriv_11(x):
     return math.factorial(10) / (x**11)
 
 
-def f_deriv_3(x):
-    return 2 / (x**3)
-
-
 a, b = 1.5, 2.0
 n_shagov = 10
 h = 0.05
 # Для более удобного вывода создал список словарей, который будет хранить информацию о каждой точке.
 x_points_to_eval = [
-    {"name": "x**", "val": 1.52, "LN": "NewTon 1", "deg": 10},
-    {"name": "x***", "val": 1.97, "LN": "Gaus 1", "deg": 2},
-    {"name": "x****", "val": 1.77, "LN": "Gaus 1", "deg": 10},
+    {"name": "x**", "val": 1.52, "LN": "NewTon 1"},
+    {"name": "x***", "val": 1.97, "LN": "NewTon 2"},
+    {"name": "x****", "val": 1.77, "LN": "Gaus 1"},
 ]
 
 x_uzly = [round(a + i * h, 2) for i in range(n_shagov + 1)]
@@ -75,7 +71,7 @@ for line in range(2 * n_points - 1):
 
 # ЭТАП 2. ВЫЧИСЛЕНИЕ Ln
 print("\n" + "=" * 160)
-print(f"{'ЭТАП 2. ВЫЧИСЛЕНИЕ ИНТЕРПОЛЯЦИОННЫХ МНОГОЧЛЕНОВ L(z)':^160}")
+print(f"{'ЭТАП 2. ВЫЧИСЛЕНИЕ ИНТЕРПОЛЯЦИОННЫХ МНОГОЧЛЕНОВ L10(z)':^160}")
 print("-" * 160)
 
 # 1. x** (1-я формула Ньютона так как точка расположена в начале, а формула использует узлы от x0 до x10 (разности, идущие «вперёд»))
@@ -86,17 +82,13 @@ for k in range(1, 11):
     p *= (t2 - k + 1) / k
     L_n2 += p * dy[0][k]  # вычисления рекурсивный с t умножаем на разности
 
-# 2. x*** (1-я формула Гаусса, так как точка 1.97 ближе к x9 = 1.95, t = 0.4)
-idx0_x3 = 9
-t3 = (x_points_to_eval[1]["val"] - x_uzly[idx0_x3]) / h
-L_n3 = dy[idx0_x3][0]
+# 2. x*** (2-я формула Ньютона так как точка расположена в конце, а формула использует узлы от x10 до x0 (разности, идущие «назад»))
+t3 = (x_points_to_eval[1]["val"] - x_uzly[10]) / h  # из x = x0 + t*h
+L_n3 = dy[10][0]
 p = 1.0
-for k in range(1, 3):
-    if k % 2 != 0:
-        p *= (t3 + (k // 2)) / k
-    else:
-        p *= (t3 - (k // 2)) / k
-    L_n3 += p * dy[idx0_x3 - (k // 2)][k]
+for k in range(1, 11):
+    p *= (t3 + k - 1) / k
+    L_n3 += p * dy[10 - k][k]
 
 # 3. x**** (1-я формула Гаусса, x0 = 1.75, так как точка расположена в середине, Формула Гаусса использует узлы,
 # симметрично расположенные относительно центра (x5), и разности, идущие в обе стороны от этого центра)
@@ -116,7 +108,7 @@ x_points_to_eval[1]["L"] = L_n3
 x_points_to_eval[2]["L"] = L_n4
 
 for pt in x_points_to_eval:
-    print(f"L{pt['deg']}({pt['name']} = {pt['val']}) = {pt['L']:.16f}  ({pt['LN']})")
+    print(f"L10({pt['name']} = {pt['val']}) = {pt['L']:.16f}  ({pt['LN']})")
 
 # ЭТАП 3. ОЦЕНКА ПОГРЕШНОСТИ
 print("\n" + "=" * 160)
@@ -125,36 +117,32 @@ print(
 )
 print("-" * 160)
 
+# Оценка производной (она монотонно убывает на [1.5, 2.0])
 f11_a = f_deriv_11(a)
 f11_b = f_deriv_11(b)
+min_f11, max_f11 = min(f11_a, f11_b), max(f11_a, f11_b)
+
+print(f"   Производная f^(11)(x) на [{a}, {b}]:")
+print(f"   f^(11)(1.5) = {f11_a:.16e}")
+print(f"   f^(11)(2.0) = {f11_b:.16e}")
+print(f"   Минимальное значение производной (min f^(11)): {min_f11:.16e}")
+print(f"   Максимальное значение производной (max f^(11)): {max_f11:.16e}")
+print(f"   f^(11)(2.0) - f^(11)(1.5) = {abs(f11_b - f11_a):.16e}")
 
 fact11 = math.factorial(11)
-fact3 = math.factorial(3)
 
 for pt in x_points_to_eval:
     z = pt["val"]
     Ln_z = pt["L"]
     fz = f(z)
-    deg = pt["deg"]
 
     # Вычисление omega(z)
     omega = 1.0
-    if pt["name"] == "x***":
-        # Для Гаусса 2-й степени от x9 используются узлы x8, x9, x10
-        relevant_nodes = x_uzly[8:11]
-    else:
-        relevant_nodes = x_uzly[:deg + 1]
-        
-    for xi in relevant_nodes:
+    for xi in x_uzly:
         omega *= z - xi
 
-    if deg == 10:
-        val1 = (f11_a * omega) / fact11
-        val2 = (f11_b * omega) / fact11
-    else:
-        # Для L2 используем 3-ю производную
-        val1 = (f_deriv_3(a) * omega) / fact3
-        val2 = (f_deriv_3(b) * omega) / fact3
+    val1 = (f11_a * omega) / fact11
+    val2 = (f11_b * omega) / fact11
 
     # Min and Max Rn
     min_Rn = min(val1, val2)
@@ -165,9 +153,9 @@ for pt in x_points_to_eval:
 
     print(f"\nАНАЛИЗ ДЛЯ ТОЧКИ {pt['name']} ({z}):")
     print(
-        f"   L{deg} = {pt['L']:.16f}  ({pt['LN']}), F({pt['val']}) = {f(pt['val']):.16f}, Разница = {abs(pt['L'] - f(pt['val'])):.16e})"
+        f"   L10 = {pt['L']:.16f}  ({pt['LN']}), F({pt['val']}) = {f(pt['val']):.16f}, Разница = {abs(pt['L'] - f(pt['val'])):.16e})"
     )
-    print(f"   omega_{deg+1}(z) = {omega:.16e}")
+    print(f"   omega_11(z) = {omega:.16e}")
     print(
         f"   Min Rn = {min_Rn:.16e} , Max Rn = {max_Rn:.16e}, Max Rn - Min Rn = {abs((max_Rn - min_Rn)):.16e}"
     )
