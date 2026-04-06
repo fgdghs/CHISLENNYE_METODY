@@ -24,10 +24,10 @@ for i in uzly_t:
             znamenatel *= i - j
 
     l_i = chislitel / znamenatel
-    sp.pprint(l_i, use_unicode=True)
+    # sp.pprint(l_i, use_unicode=True)
     # Дифференцируем  k раз и подставляем точку m
     proizv_sym = sp.diff(l_i, t, k)
-    sp.pprint(proizv_sym, use_unicode=True)
+    # sp.pprint(proizv_sym, use_unicode=True)
     znachenie = proizv_sym.subs(t, m)
     koeff_A.append(float(znachenie))
 
@@ -72,11 +72,11 @@ if R_min > R_max:
 
 
 print(f"--- Результаты ---")
-print(f"Приближенное L''(x0): {priblizh_val:.10f}")
-print(f"Точное f''(x0):      {tochnoe_val:.10f}")
-print(f"Фактическая ошибка:  {fakt_oshibka:.2e}")
+print(f"Приближенное L''(x0): {priblizh_val:.16f}")
+print(f"Точное f''(x0):      {tochnoe_val:.16f}")
+print(f"Фактическая ошибка:  {fakt_oshibka:.16e}")
 print("-" * 45)
 print(f"Теоретический диапазон погрешности:")
-print(f"min Rn,k: {R_min:.2e}")
-print(f"max Rn,k: {R_max:.2e}")
+print(f"min Rn,k: {R_min:.16e}")
+print(f"max Rn,k: {R_max:.16e}")
 print(f"Условие min < R < max: {R_min <= fakt_oshibka <= R_max}")
