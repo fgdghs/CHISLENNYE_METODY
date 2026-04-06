@@ -2,7 +2,11 @@ import math
 import sys
 
 
+<<<<<<< HEAD
 f_output = open("LAB_2/interpolation_results.txt", "w", encoding="utf-8")
+=======
+f_output = open("interpolation_results.txt", "w", encoding="utf-8")
+>>>>>>> dc28271cd437ed06d1582f0c1ffc7811fee60d32
 sys.stdout = f_output
 
 
