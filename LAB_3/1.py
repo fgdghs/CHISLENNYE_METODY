@@ -2,9 +2,9 @@ import sympy as sp
 import numpy as np
 
 x, h_sym, x0_sym = sp.symbols("x h x0")
-n = 5  
+n = 5 
 k = 2  
-h_val = 0.1
+h_val = 0.001
 x0_val = 1.5
 
 f_syms = sp.symbols(f'f0:{n+1}')
@@ -21,11 +21,12 @@ for i in range(n + 1):
     
     L_n_x += f_syms[i] * (chislitel / znamenatel)
 
+
 L_n_deriv2_x = sp.diff(L_n_x, x, k)
 formula_at_x0 = sp.simplify(L_n_deriv2_x.subs(x, x0_sym))
 
 print("="*70)
-print("АНАЛИТИЧЕСКАЯ ФОРМУЛА L''(x0):")
+print(" ФОРМУЛА L''(x0):")
 print("="*70)
 sp.pprint(formula_at_x0, use_unicode=True)
 print("="*70 + "\n")
