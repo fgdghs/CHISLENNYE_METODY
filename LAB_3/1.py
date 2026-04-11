@@ -1,82 +1,69 @@
 import sympy as sp
 import numpy as np
 
-# Этап 1
-t = sp.symbols("t")
-n = 5  # Степень многочлена
-k = 2  # Порядок производной
-m = 0  # Индекс узла x0
+x, h_sym, x0_sym = sp.symbols("x h x0")
+n = 5 
+k = 2  
+h_val = 0.001
+x0_val = 1.5
 
-uzly_t = list(range(n + 1))
-koeff_A = []
+f_syms = sp.symbols(f'f0:{n+1}')
+uzly_x_sym = [x0_sym + i * h_sym for i in range(n + 1)]
 
-for i in uzly_t:
-    # Числитель
+L_n_x = 0
+for i in range(n + 1):
     chislitel = 1
-    for j in uzly_t:
-        if i != j:
-            chislitel *= t - j
-
-    # Знаменатель
     znamenatel = 1
-    for j in uzly_t:
+    for j in range(n + 1):
         if i != j:
-            znamenatel *= i - j
+            chislitel *= (x - uzly_x_sym[j])
+            znamenatel *= (uzly_x_sym[i] - uzly_x_sym[j])
+    
+    L_n_x += f_syms[i] * (chislitel / znamenatel)
 
-    l_i = chislitel / znamenatel
-    # sp.pprint(l_i, use_unicode=True)
-    # Дифференцируем  k раз и подставляем точку m
-    proizv_sym = sp.diff(l_i, t, k)
-    # sp.pprint(proizv_sym, use_unicode=True)
-    znachenie = proizv_sym.subs(t, m)
-    koeff_A.append(float(znachenie))
 
-koeff_A = np.array(koeff_A)
+L_n_deriv2_x = sp.diff(L_n_x, x, k)
+formula_at_x0 = sp.simplify(L_n_deriv2_x.subs(x, x0_sym))
 
-# Этап 2
-h = 0.1  # Шаг сетки
-x0 = 1.5  # Начальная точка
+print("="*70)
+print(" ФОРМУЛА L''(x0):")
+print("="*70)
+sp.pprint(formula_at_x0, use_unicode=True)
+print("="*70 + "\n")
 
-# Исходная функция и её производные
-f = lambda x: x**2 + np.log(x) - 4
-f_2_tochno = lambda x: 2 - (1 / x**2)
-f_6_tochno = lambda x: -120 * (x**-6)
+f_func = lambda v: v**2 + np.log(v) - 4
+f_2_tochno = lambda v: 2 - (1 / v**2)
+f_6_tochno = lambda v: -120 * (v**-6)
 
-uzly_x = np.array([x0 + i * h for i in range(n + 1)])
-y_vals = f(uzly_x)
+uzly_x_num = np.array([x0_val + i * h_val for i in range(n + 1)])
+y_vals = f_func(uzly_x_num)
 
-# Расчет значения производной по формуле Лагранжа
-priblizh_val = np.sum(koeff_A * y_vals) / (h**k)
-tochnoe_val = f_2_tochno(x0)
+subs_dict = {h_sym: h_val}
+subs_dict.update({f_syms[i]: y_vals[i] for i in range(n+1)})
+
+priblizh_val = float(formula_at_x0.subs(subs_dict))
+tochnoe_val = f_2_tochno(x0_val)
 fakt_oshibka = tochnoe_val - priblizh_val
 
-# Этап 3
-# Вычисление константы omega
-t_sym = sp.symbols("t_sym")
+x_num = sp.symbols('x_num')
 omega = 1
-for i in range(n + 1):
-    omega *= t_sym - i
+for xi in uzly_x_num:
+    omega *= (x_num - xi)
 
-omega_diff_k = sp.diff(omega, t_sym, k).subs(t_sym, m)
+omega_diff_k = sp.diff(omega, x_num, k).subs(x_num, x0_val)
 teor_const = float(omega_diff_k) / sp.factorial(n + 1)
 
-# Поиск экстремумов (n+1)-й производной на отрезке
-xi_vals = np.linspace(uzly_x[0], uzly_x[-1], 100)
+xi_vals = np.linspace(uzly_x_num[0], uzly_x_num[-1], 100)
 proizv_6_vals = f_6_tochno(xi_vals)
 
-R_min = teor_const * (h ** (n + 1 - k)) * np.min(proizv_6_vals)
-R_max = teor_const * (h ** (n + 1 - k)) * np.max(proizv_6_vals)
+R_min = teor_const * np.min(proizv_6_vals)
+R_max = teor_const * np.max(proizv_6_vals)
 
-if R_min > R_max:
-    R_min, R_max = R_max, R_min
+if R_min > R_max: R_min, R_max = R_max, R_min
 
-
-print(f"--- Результаты ---")
 print(f"Приближенное L''(x0): {priblizh_val:.16f}")
 print(f"Точное f''(x0):      {tochnoe_val:.16f}")
 print(f"Фактическая ошибка:  {fakt_oshibka:.16e}")
 print("-" * 45)
-print(f"Теоретический диапазон погрешности:")
-print(f"min Rn,k: {R_min:.16e}")
-print(f"max Rn,k: {R_max:.16e}")
-print(f"Условие min < R < max: {R_min <= fakt_oshibka <= R_max}")
+print(f"Диапазон погрешности: [{R_min:.16e}, {R_max:.16e}]")
+print(f"Попадает в диапазон: {R_min <= fakt_oshibka <= R_max}")
