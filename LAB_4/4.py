@@ -35,9 +35,9 @@ def vychislit_s_utochneniem(a, b, eps):
         n = n_novoe
 
 
-nizhnyaya_granica = 1.5
-verhnyaya_granica = 2.0
-tochnost = 0.001
+nizhnyaya_granica = 1
+verhnyaya_granica = 2
+tochnost = 0.01
 
 itog, final_n = vychislit_s_utochneniem(nizhnyaya_granica, verhnyaya_granica, tochnost)
 
