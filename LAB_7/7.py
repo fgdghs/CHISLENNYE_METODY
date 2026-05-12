@@ -9,7 +9,7 @@ def df(x):
 def d2f(x):
     return -2/x**2 - 2/x**3
 
-def solve_combined_method(a, b, eps=1e-5):
+def solve_combined_method(a, b, eps=1e-10):
     # Проверка условия сходимости для метода касательных (f(x) * f''(x) > 0)
     # На [1, 2] f''(x) < 0. Значит выбираем конец, где f(x) < 0
     if f(a) * d2f(a) > 0:
@@ -31,12 +31,12 @@ def solve_combined_method(a, b, eps=1e-5):
         xn_chord = xn_chord - (f(xn_chord) * (xn - xn_chord)) / (f(xn) - f(xn_chord))
         
         iteration += 1
-        print(f"{iteration:<10} | {xn:<15.6f} | {xn_chord:<15.6f} | {abs(xn - xn_chord):<15.6e}")
+        print(f"{iteration:<10} | {xn:<15.6f} | {xn_chord:<15.6f} | {abs(xn - xn_chord):<16e}")
 
     return (xn + xn_chord) / 2
 
 # Начальный отрезок [1, 2]
-root = solve_combined_method(1, 2)
+root = solve_combined_method(1, 2, eps=1e-10)
 print("-" * 65)
-print(f"Найденный корень: {root:.6f}")
-print(f"Проверка f(root): {f(root):.2e}")
+print(f"Найденный корень: {root:.16e}")
+print(f"Проверка f(root): {f(root):.16e}")
