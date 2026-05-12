@@ -9,34 +9,53 @@ def df(x):
 def d2f(x):
     return -2/x**2 - 2/x**3
 
-def solve_combined_method(a, b, eps=1e-10):
-    # Проверка условия сходимости для метода касательных (f(x) * f''(x) > 0)
-    # На [1, 2] f''(x) < 0. Значит выбираем конец, где f(x) < 0
+# Поиск интервалов где находится корень
+def find_intervals(start, end, step):
+    intervals = []
+    curr = start
+    while curr < end:
+        nxt = curr + step
+        # Теорема Больцано-Коши
+        if f(curr) * f(nxt) < 0:
+            intervals.append((curr, nxt))
+        curr = nxt
+    return intervals
+
+def solve_combined_method(a, b, eps):
     if f(a) * d2f(a) > 0:
-        xn = a # приближение касательными
-        xn_chord = b # приближение хордами
+        xn = a           
+        xn_chord = b    
     else:
         xn = b
         xn_chord = a
 
-    print(f"{'Итерация':<10} | {'x_касат (xn)':<15} | {'x_хорд (xn_wave)':<15} | {'Разность':<15}")
-    print("-" * 65)
+    print(f"\nУточнение корня на отрезке [{a}, {b}]")
+    print(f"{'Итерация':<7} | {'x_кас (xn)':<18} | {'x_хорд (xn_chord)':<18} | {'Разность':<12}")
+    print("-" * 70)
 
     iteration = 0
     while abs(xn - xn_chord) > eps:
-        # Метод касательных (Ньютона)
-        xn = xn - f(xn) / df(xn)
-        
-        # Метод хорд
-        xn_chord = xn_chord - (f(xn_chord) * (xn - xn_chord)) / (f(xn) - f(xn_chord))
-        
         iteration += 1
-        print(f"{iteration:<10} | {xn:<15.6f} | {xn_chord:<15.6f} | {abs(xn - xn_chord):<16e}")
+        
+        f_xn = f(xn)
+        f_ch = f(xn_chord)
+            
+        xn = xn - f_xn / df(xn)
+
+        xn_chord = xn_chord - (f_ch * (xn - xn_chord)) / (f(xn) - f_ch)
+        
+        print(f"{iteration:<7} | {xn:<18.12f} | {xn_chord:<18.12f} | {abs(xn - xn_chord):<12.2e}")
 
     return (xn + xn_chord) / 2
 
-# Начальный отрезок [1, 2]
-root = solve_combined_method(1, 2, eps=1e-10)
-print("-" * 65)
-print(f"Найденный корень: {root:.16e}")
-print(f"Проверка f(root): {f(root):.16e}")
+intervals = find_intervals(0.1, 5, 0.1)
+
+print(f"Найдено интервалов : {len(intervals)}")
+
+for interval in intervals:
+    a, b = interval
+    res = solve_combined_method(a, b, eps=1e-15)
+        
+    print("-" * 70)
+    print(f"Итоговый корень: {res:.14f}")
+    print(f"Значение f(x):   {f(res):.2e}")
